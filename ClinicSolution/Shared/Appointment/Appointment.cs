@@ -11,6 +11,7 @@ namespace ClinicSolution.Shared.Appointment
         public int Id { get; set; }
         [Required]
         public string PatientName { get; set; }
+        public string Alias { get; set; }
         [Required]
         public string Problem { get; set; }
         public string ClinicalMedicine { get; set; }
