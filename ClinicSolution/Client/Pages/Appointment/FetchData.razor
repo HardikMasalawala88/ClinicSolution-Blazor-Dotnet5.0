@@ -29,7 +29,11 @@ else
             <tr>
                 <th>Id</th>
                 <th>Patient Name</th>
+                <th>Alias</th>
                 <th>Problem</th>
+                <th>ClinicalMedicine</th>
+                <th>Prescription</th>
+                <th>Specification</th>
                 <th>AppointmentDate</th>
                 <th>Bill Amount</th>
                 <th></th>
@@ -43,7 +47,11 @@ else
                 <tr>
                     <td>@appointment.Id</td>
                     <td>@appointment.PatientName</td>
+                    <td>@appointment.Alias</td>
                     <td>@appointment.Problem</td>
+                    <td>@appointment.ClinicalMedicine</td>
+                    <td>@appointment.Prescription</td>
+                    <td>@appointment.Specification</td>
                     <td>@appointment.AppointmentDate.ToString("MMM dd/yyyy")</td>
                     <td>@appointment.Amount</td>
                     <td>
