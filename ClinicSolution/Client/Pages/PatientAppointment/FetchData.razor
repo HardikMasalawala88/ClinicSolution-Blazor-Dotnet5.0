@@ -1,11 +1,13 @@
 ﻿@page "/patientAppointment"
 @inject HttpClient client
 @inject IJSRuntime js
-
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
 <h3>Patient Appointments</h3>
 
 <div class="form-group">
-    <a class="btn btn-success" href="patientAppointment/create"><i class="oi oi-plus"></i> Create New</a>&nbsp;<small>Add as many appointments as you wish.</small>
+    @*<a class="btn btn-success" href="patientAppointment/create"><i class="oi oi-plus"></i> Create New</a>*@&nbsp;<small>Add as many appointments as you wish.</small>
+    <button class="btn btn-success text-uppercase" @onclick="() => RequestAddAppointment()"> ADD</button>
 </div>
 <br>
 
@@ -40,12 +42,30 @@ else
             </tr>
         </thead>
         <tbody>
+            @*ADD PATIENTAPPOINTMENT START*@
+            @if (actionMode == "add")
+            {
+                <tr>
+                    <Form ButtonText="Create Appointment" patientAppointment="@patientAppointment"
+                          OnValidSubmit="@CreatePatientAppointment" />
+                </tr>
+            }
+            @*ADD PATIENTAPPOINTMENT END*@
+            @*EDIT PATIENTAPPOINTMENT START*@
+            @if (actionMode == "edit")
+            {
+                <tr>
+                    <Form ButtonText="Update" patientAppointment="patientAppointment"
+                          OnValidSubmit="@EditPatientAppointment" />
+                </tr>
+            }
+            @*EDIT PATIENTAPPOINTMENT END*@
             @foreach (PatientAppointment patientAppointment in patientAppointments)
             {
                 if (!IsVisible(patientAppointment))
                     continue;
                 <tr>
-                    <td>@patientAppointment.Id</td>
+                    <td id="pa@(patientAppointment.Id)">@patientAppointment.Id</td>
                     <td>@patientAppointment.PatientName</td>
                     <td>@patientAppointment.AccountOrAreaName</td>
                     <td>@patientAppointment.Complaints</td>
@@ -55,7 +75,8 @@ else
                     <td>@patientAppointment.Specification</td>
                     <td>@patientAppointment.AppointmentDate.ToString("MMM dd/yyyy")</td>
                     <td>
-                        <a class="btn btn-success" href="appointment/edit/@patientAppointment.Id">Edit</a>
+                        @*<a class="btn btn-success" href="appointment/edit/@patientAppointment.Id">Edit</a>*@
+                        <button class="btn btn-success text-uppercase" @onclick="() => RequestEditAppointment(patientAppointment.Id)"> edit</button>
                         @*<button class="btn btn-danger" @onclick="@(() => Delete(patientAppointment.Id))">Delete</button>*@
                     </td>
                 </tr>
@@ -99,5 +120,46 @@ else
             return true;
 
         return false;
+    }
+}
+
+@code {
+    //[Parameter] public int patientAppointmentId { get; set; }
+    PatientAppointment patientAppointment = new PatientAppointment();
+    string actionMode = string.Empty;
+    async void RequestEditAppointment(int localPatientAppointmentId)
+    {
+        actionMode = "edit";
+        patientAppointment = await client.GetFromJsonAsync<PatientAppointment>($"api/patientAppointment/{localPatientAppointmentId}");
+    }
+    //protected async override Task OnParametersSetAsync()
+    //{
+    //    patientAppointment = await client.GetFromJsonAsync<PatientAppointment>($"api/patientAppointment/{patientAppointmentId}");
+    //}
+    async Task EditPatientAppointment()
+    {
+        actionMode = string.Empty;
+        await client.PutAsJsonAsync("api/patientAppointmentId", patientAppointment);
+        await js.InvokeVoidAsync("alert", $"Updated Successfully!");
+        uriHelper.NavigateTo("patientAppointmentId");
+    }
+}
+
+@code {
+    //PatientAppointment patientAppointment = new PatientAppointment();
+    protected override void OnInitialized()
+    {
+        patientAppointment.AppointmentDate = DateTime.Now;
+    }
+    async void RequestAddAppointment()
+    {
+        actionMode = "add";
+        patientAppointment.AppointmentDate = DateTime.Now;
+    }
+    async Task CreatePatientAppointment()
+    {
+        actionMode = string.Empty;
+        await client.PostAsJsonAsync("api/patientAppointment", patientAppointment);
+        uriHelper.NavigateTo("patientAppointment");
     }
 }
