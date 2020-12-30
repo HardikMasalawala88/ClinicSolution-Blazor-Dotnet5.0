@@ -1,0 +1,103 @@
+﻿@page "/patientAppointment"
+@inject HttpClient client
+@inject IJSRuntime js
+
+<h3>Patient Appointments</h3>
+
+<div class="form-group">
+    <a class="btn btn-success" href="patientAppointment/create"><i class="oi oi-plus"></i> Create New</a>&nbsp;<small>Add as many appointments as you wish.</small>
+</div>
+<br>
+
+@if (patientAppointments == null)
+{
+    <text>Loading...</text>
+}
+else if (patientAppointments.Length == 0)
+{
+    <text>No Records Found.</text>
+}
+else
+{
+    <div class="form-group">
+        <input class="form-control" type="text" placeholder="Filter..."
+               @bind="Filter"
+               @bind:event="oninput">
+    </div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>NAME</th>
+                <th>KHATA</th>
+                <th>COMPLAINTS</th>
+                <th>CLINICAL MEDICINE</th>
+                <th>1-PRESCRIPTION</th>
+                <th>2-PRESCRIPTION</th>
+                <th>SPECIFICATION</th>
+                <th>DATE</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (PatientAppointment patientAppointment in patientAppointments)
+            {
+                if (!IsVisible(patientAppointment))
+                    continue;
+                <tr>
+                    <td>@patientAppointment.Id</td>
+                    <td>@patientAppointment.PatientName</td>
+                    <td>@patientAppointment.AccountOrAreaName</td>
+                    <td>@patientAppointment.Complaints</td>
+                    <td>@patientAppointment.ClinicalMedicine</td>
+                    <td>@patientAppointment.FirstPrescription</td>
+                    <td>@patientAppointment.SecondPrescription</td>
+                    <td>@patientAppointment.Specification</td>
+                    <td>@patientAppointment.AppointmentDate.ToString("MMM dd/yyyy")</td>
+                    <td>
+                        <a class="btn btn-success" href="appointment/edit/@patientAppointment.Id">Edit</a>
+                        @*<button class="btn btn-danger" @onclick="@(() => Delete(patientAppointment.Id))">Delete</button>*@
+                    </td>
+                </tr>
+
+            }
+
+        </tbody>
+    </table>
+}
+@code {
+    public string Filter { get; set; }
+    PatientAppointment[] patientAppointments { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        patientAppointments = await client.GetFromJsonAsync<PatientAppointment[]>("api/patientAppointment");
+    }
+
+    async Task Delete(int patientAppointmentId)
+    {
+        var patientAppointment = patientAppointments.First(x => x.Id == patientAppointmentId);
+        if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {patientAppointment.PatientName}'s appointment of {patientAppointment.Id} ({patientAppointment.Id}) Record?"))
+        {
+            await client.DeleteAsync($"api/patientAppointment/{patientAppointmentId}");
+            await OnInitializedAsync();
+        }
+    }
+    bool IsVisible(PatientAppointment patientAppointment)
+    {
+        if (string.IsNullOrEmpty(Filter))
+            return true;
+
+        if (patientAppointment.PatientName.Contains(Filter, StringComparison.OrdinalIgnoreCase)
+            || patientAppointment.Id.ToString().StartsWith(Filter)
+            || patientAppointment.AccountOrAreaName.Contains(Filter, StringComparison.OrdinalIgnoreCase)
+            || patientAppointment.Specification.Contains(Filter, StringComparison.OrdinalIgnoreCase)
+            || patientAppointment.ClinicalMedicine.Contains(Filter, StringComparison.OrdinalIgnoreCase)
+            || patientAppointment.Complaints.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (patientAppointment.AppointmentDate.ToString("MMM dd/yyyy").Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+}
