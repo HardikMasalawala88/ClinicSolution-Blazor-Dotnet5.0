@@ -20,6 +20,8 @@ namespace ClinicSolution.Shared.PatientAppointment
         public string SecondPrescription { get; set; }
         public string Specification { get; set; }
         public DateTime CreatedDate { get; set; } = new DateTime();
-        
+        public Decimal Balance { get; set; }
+        public Decimal DB  { get; set; }
+        public Decimal MiscellaneousAmount { get; set; }
     }
 }
